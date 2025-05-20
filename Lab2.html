@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cat Breed Explorer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .container {
+      max-width: 500px;
+      border: 1px solid #ccc;
+      padding: 15px;
+      border-radius: 10px;
+    }
+    .result-box {
+      border: 1px solid green;
+      padding: 10px;
+      margin-top: 10px;
+      min-height: 50px;
+      font-family: monospace;
+    }
+    button {
+      margin: 5px 0;
+      padding: 5px 10px;
+    }
+    .input-row {
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="input-row">
+      <button onclick="showAllNames()">All Names</button>
+    </div>
+    <div class="input-row">
+      <button onclick="healthInput()">Health Issues</button>
+      <input type="number" id="healthInput" min="0" placeholder="Enter health issue #">
+      <button onclick="filterByHealth()">Filter</button>
+    </div>
+    <div class="input-row">
+      <label><input type="radio" name="unit" value="imperial" checked> Imperial</label>
+      <label><input type="radio" name="unit" value="metric"> Metric</label>
+      <button onclick="showWeights()">Weight</button>
+    </div>
+    <div class="input-row">
+      <button onclick="showIntelligenceFriendly()">Intelligence - Friendly</button>
+    </div>
+    <div class="input-row">
+      <button onclick="showAverageIntelligence()">Average Intelligence</button>
+    </div>
+    <div class="input-row">
+      <button onclick="showChildFriendlyIntelligence()">Average Intelligence for Child Friendly = 4</button>
+    </div>
+
+    <div class="result-box" id="results"><--All Results should be displayed here--></div>
+  </div>
+
+  <script>
+let cats = [];
+
+async function fetchCats() {
+  const res = await fetch('https://api.thecatapi.com/v1/breeds');
+  cats = await res.json();
+  showAllNames(); // Show all names once data is loaded
+}
+
+function showAllNames() {
+  const names = cats.map(cat => cat.name).join("<br>");
+  document.getElementById("results").innerHTML = `All names (total = ${cats.length}):<br>${names}`;
+}
+
+function filterByHealth() {
+  const healthIssue = parseInt(document.getElementById("healthInput").value);
+  const filtered = cats.filter(cat => cat.health_issues === healthIssue);
+  const names = filtered.map(cat => cat.name).join("<br>");
+  document.getElementById("results").innerHTML = `Health Issues for ${healthIssue}:<br>${names}<br>Total = ${filtered.length}`;
+}
+
+function showWeights() {
+  const unit = document.querySelector('input[name="unit"]:checked').value;
+  const weightKey = unit === 'imperial' ? 'imperial' : 'metric';
+  const output = cats.map(cat => `${cat.name}: ${cat.weight[weightKey]}`).join("<br>");
+  document.getElementById("results").innerHTML = `Weights in ${unit === 'imperial' ? 'Imperial' : 'Metric'}:<br>${output}`;
+}
+
+function showIntelligenceFriendly() {
+  const output = cats.map(cat => `${cat.intelligence} . ${cat.affection_level}`).join("<br>");
+  document.getElementById("results").innerHTML = `I - F:<br>${output}`;
+}
+
+function showAverageIntelligence() {
+  const avg = (
+    cats.reduce((sum, cat) => sum + (cat.intelligence || 0), 0) / cats.length
+  ).toFixed(2);
+  document.getElementById("results").innerHTML = `Average Intelligence : ${avg}`;
+}
+
+function showChildFriendlyIntelligence() {
+  const filtered = cats.filter(cat => cat.child_friendly === 4);
+  const avg = (
+    filtered.reduce((sum, cat) => sum + (cat.intelligence || 0), 0) / filtered.length
+  ).toFixed(2);
+  document.getElementById("results").innerHTML = `Average Intelligence for Child Friendly = 4:<br>${avg}`;
+}
+
+// Call the API on page load
+fetchCats();
+</script>
+
+</body>
+</html>
